@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [movies, setMovies] = useState([]);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [latestMovies, setLatestMovies] = useState([]);
+
+  useEffect(() => {
+    // Retrieve latest searched movies from local storage
+    const storedMovies = JSON.parse(localStorage.getItem('latestMovies')) || [];
+    setLatestMovies(storedMovies);
+  }, []);
 
   const handleSearchChange = event => {
     setSearchQuery(event.target.value);
@@ -17,6 +24,15 @@ function App() {
         if (data && data.length > 0) {
           setMovies(data);
           setBackgroundColor(getRandomColor());
+
+          // Update latest searched movies
+          const updatedLatestMovies = [...latestMovies];
+          updatedLatestMovies.unshift(data[0]); // Add the first movie from the search result
+          if (updatedLatestMovies.length > 5) {
+            updatedLatestMovies.pop(); // Remove the oldest movie if the list exceeds 5
+          }
+          setLatestMovies(updatedLatestMovies);
+          localStorage.setItem('latestMovies', JSON.stringify(updatedLatestMovies));
         } else {
           setMovies([]);
         }
@@ -55,6 +71,14 @@ function App() {
             <img src={movie.poster} alt={movie.title} />
           </div>
         ))}
+      </div>
+      <div className="latest-searched">
+        <h2>Latest Searched Movies:</h2>
+        <ul>
+          {latestMovies.map((movie, index) => (
+            <li key={index}>{movie.title}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
